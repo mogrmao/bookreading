@@ -77,6 +77,8 @@ const S = {
 const curGroup = () => S.groups.find(g=>g.id===S.gid) || null;
 const members = () => (curGroup()?.members) || [];
 const leaders = g => (g?.members||[]).filter(m=>m.role==='leader');
+const MIN_MEMBERS = 2;
+const isFormed = g => ((g?.members)||[]).length >= MIN_MEMBERS;
 const isLeader = () => { const g=curGroup(); return !!g && (g.leaderEmails||[]).includes(S.email); };
 const myRecord = () => members().find(m=>m.id===S.email) || null;
 const myName = () => myRecord()?.name || S.authUser?.displayName || S.email;
@@ -149,7 +151,7 @@ function renderTop(){
   if(!S.authUser){ tb.innerHTML=brand; return; }
   let pick='';
   if(S.groups.length){
-    pick=`<div class="group-pick"><label for="gsel">小組</label><select id="gsel">${S.groups.map(x=>`<option value="${esc(x.id)}"${x.id===S.gid?' selected':''}>${esc(x.name)}</option>`).join('')}</select>
+    pick=`<div class="group-pick"><label for="gsel">小組</label><select id="gsel">${S.groups.map(x=>`<option value="${esc(x.id)}"${x.id===S.gid?' selected':''}>${esc(x.name)}${isFormed(x)?'':'（未成團）'}</option>`).join('')}</select>
     <button class="btn sm ghost" data-act="new-group">＋ 新小組</button></div>`;
   }
   const g=curGroup(); const lead=isLeader();
@@ -233,7 +235,7 @@ function render(){
   }
   const ls=leaders(g);
   const head=`<div class="ghead"><div style="flex:1;min-width:240px">
-      <h1>${esc(g.name)}</h1>
+      <h1>${esc(g.name)}${isFormed(g)?'':'<span class="pill warn" style="margin-left:10px;vertical-align:middle;font-family:var(--font-body)">未成團</span>'}</h1>
       <div class="sub">${esc(g.note||'')}${g.note?' · ':''}<span class="num">${members().length}</span> 位成員</div></div>
       <div class="leaders">組長 ${ls.length?ls.map(m=>`<span class="pill neutral">${esc(m.name)}</span>`).join(''):'<span class="pill warn">尚未指定</span>'}</div></div>
     <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${S.tab===k}" data-act="tab" data-k="${k}">${l}</button>`).join('')}</nav>`;
@@ -242,7 +244,8 @@ function render(){
   else if(S.tab==='attendance') body=viewAttendance();
   else if(S.tab==='monthly') body=viewMonthly();
   else body=viewGroup();
-  app.innerHTML=head+body;
+  const notFormed=isFormed(g)?'':`<div class="notice warn" style="margin-bottom:16px"><b>尚未成團：</b>目前只有 ${members().length} 位成員，滿 ${MIN_MEMBERS} 位成員即成團。${isLeader()?'請到「小組成員」新增成員。':'等組長新增成員後即可成團。'}</div>`;
+  app.innerHTML=head+notFormed+body;
   if(S.tab==='group') mountGroupEditor();
 }
 
@@ -380,7 +383,7 @@ function cleanMembers(list){
 }
 function rosterErrors(ms){
   const e=[]; const lc=ms.filter(m=>m.role==='leader').length;
-  if(ms.length<2) e.push('小組至少需要 2 位成員'); if(ms.length>30) e.push('小組最多 30 位成員');
+  if(ms.length<1) e.push('小組至少需要 1 位成員'); if(ms.length>30) e.push('小組最多 30 位成員');
   if(lc<1) e.push('至少需要 1 位組長'); if(lc>3) e.push('組長最多 3 位');
   const noName=ms.find(m=>!m.name); if(noName) e.push(`請填寫 ${noName.email||'每位成員'} 的姓名`);
   const bad=ms.find(m=>!EMAIL_RE.test(m.email)); if(bad) e.push(`「${bad.name||'某位成員'}」的 Email 未填或格式不正確`);
@@ -393,7 +396,7 @@ function groupPayload(base,name,note,ms){
 }
 function updateCounter(){
   const ms=S.draft.members.filter(m=>(m.name||'').trim()||(m.email||'').trim()); const lc=ms.filter(m=>m.role==='leader').length;
-  const c=$('#counter'); if(c) c.innerHTML=`成員 <b class="num">${ms.length}</b> / 30 · 組長 <b class="num">${lc}</b> / 3`;
+  const c=$('#counter'); if(c) c.innerHTML=`成員 <b class="num">${ms.length}</b> / 30 · 組長 <b class="num">${lc}</b> / 3${ms.length<MIN_MEMBERS?' · <span class="pill warn">未成團</span>':''}`;
 }
 
 /* ============ modals ============ */
@@ -409,7 +412,7 @@ function groupModal(){
   const f=openModal('建立新小組',`
     <div class="field"><label for="ng-name">小組名稱</label><input type="text" id="ng-name" maxlength="40" placeholder="例如：週三晚間讀書會"></div>
     <div class="field"><label for="ng-note">簡介（選填）</label><input type="text" id="ng-note" maxlength="80"></div>
-    <div class="field"><label for="ng-mem">成員名單（每行一位：姓名, Email）</label><textarea id="ng-mem" rows="8" placeholder="王小明, ming@example.com&#10;林怡君, yijun@example.com"></textarea></div>
+    <div class="field"><label for="ng-mem">成員名單（每行一位：姓名, Email；可以先只有你自己，之後再新增，滿 2 位即成團）</label><textarea id="ng-mem" rows="8" placeholder="王小明, ming@example.com&#10;林怡君, yijun@example.com"></textarea></div>
     <div class="field"><label for="ng-lead">其他組長的 Email（選填，以逗號分隔；你會自動成為組長）</label><input type="text" id="ng-lead" placeholder="yijun@example.com"></div>
     <div class="err" id="ng-err" role="alert"></div>`,
     `<button type="button" class="btn" data-act="close">取消</button><button class="btn primary">建立小組</button>`, true);
