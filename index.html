@@ -221,6 +221,32 @@ pre.mail{white-space:pre-wrap;background:var(--surface-2);border:1px solid var(-
 .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:16px 0}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
 code{background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:13px}
+
+/* Roles / join / attendance cells */
+.role-tag.founder{background:#FBF0DC;color:#8A5A0B}
+.role-tag.leader{background:var(--accent-soft);color:var(--accent-ink)}
+.join-head{margin-bottom:18px}
+.join-head h1{font-family:var(--font-display);font-size:26px}
+.join-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+@media (max-width:860px){.join-grid{grid-template-columns:1fr}}
+.dir-list{margin-top:12px;max-height:560px;overflow-y:auto;border-top:1px solid var(--line)}
+.dir-row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.dir-row .grow{flex:1;min-width:0}
+.dir-row .t{font-weight:500;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dir-row .s{font-size:13px;color:var(--muted)}
+.dir-code{font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:4px 8px;font-size:14px;flex:none}
+.cell{all:unset;cursor:pointer;width:32px;height:32px;display:inline-grid;place-items:center;border-radius:8px}
+.cell:hover{background:var(--accent-soft)}
+.cell:focus-visible{outline:2px solid var(--accent)}
+.cell:disabled{opacity:.5;cursor:progress}
+tr.me-row td{background:#F7FBF9}
+tr.me-row td.sticky-col{background:#F7FBF9}
+.mine{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;border:1px dashed #b9d8cd;border-radius:8px;padding:8px 12px}
+.mine .ok{color:var(--good)}
+select.role-sel{width:auto;min-width:96px}
+td .toolbar{flex-wrap:nowrap}
+input[type=search]{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:36px;width:100%}
+input[type=search]:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
 </style>
 </head>
 <body>
@@ -233,6 +259,6 @@ code{background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:13p
 <main id="app"><div class="empty"><p>載入中…</p></div></main>
 <div id="modal-root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
-<script type="module" src="./app.js?v=20261113-3"></script>
+<script type="module" src="./app.js?v=20261119-1"></script>
 </body>
 </html>
